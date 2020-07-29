@@ -454,7 +454,7 @@ static VALUE cups_get_device_uri(VALUE self, VALUE printer)
    http_t *http;
    ipp_t *request;
    ipp_t *response;
-   ipp_attribute_t *attr;
+   // ipp_attribute_t *attr;
    char uri[1024];
    char *location;
    char *name = RSTRING_PTR(printer);
@@ -462,7 +462,7 @@ static VALUE cups_get_device_uri(VALUE self, VALUE printer)
    request = ippNewRequest(IPP_GET_PRINTER_ATTRIBUTES);
    httpAssembleURIf(HTTP_URI_CODING_ALL, uri, sizeof(uri), "ipp", NULL, "localhost", 0, "/printers/%s", name);
    ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_URI, "printer-uri", NULL, uri);
-
+/*
    if ((response = cupsDoRequest(http, request, "/")) != NULL)
    {
      if((attr = ippFindAttribute(response, "device-uri", IPP_TAG_URI)) != NULL)
@@ -471,6 +471,7 @@ static VALUE cups_get_device_uri(VALUE self, VALUE printer)
      }
      ippDelete(response);
    }
+*/
    return Qtrue;
 }
 
