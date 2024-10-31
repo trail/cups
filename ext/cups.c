@@ -147,7 +147,7 @@ static VALUE cups_print(VALUE self)
     cupsAddOption(iter_str, value_str, num_options++, &options);
   }
 
-  if(NIL_P(url)) {
+  if(url == NULL) {
     url = cupsServer();
   }
 
