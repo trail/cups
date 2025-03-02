@@ -5,15 +5,15 @@ unless have_library("cups") && find_executable("cups-config")
   exit
 end
 
-def include_ipp_private_structures?
-  puts 'cups version:'
-  puts `cups-config --version`
-  `cups-config --version`.scan(/1.(6|7)/).size > 0
+def cups_version
+  `cups-config --version`.chomp
 end
 
 cups_cflags = `cups-config --cflags`.chomp || ""
-cups_cflags += ' -D_IPP_PRIVATE_STRUCTURES' if include_ipp_private_structures?
 cups_libs = `cups-config --libs`.chomp || ""
+
+# Add additional flags for CUPS 2.x compatibility
+cups_cflags += ' -DHAVE_CUPS_2_4'
 
 with_cflags(cups_cflags) {
   with_ldflags(cups_libs) {

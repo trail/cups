@@ -152,7 +152,12 @@ static VALUE cups_print(VALUE self)
   }
 
   int encryption = (http_encryption_t)cupsEncryption();
-  http_t *http = httpConnect2(url, port, NULL, AF_UNSPEC, (http_encryption_t) encryption, 1, 30000, NULL);
+  http_t *http = get_http_connection(url, port);
+
+  if (!http) {
+    rb_raise(rb_eRuntimeError, "Failed to connect to CUPS server");
+    return Qfalse;
+  }
 
   job_id = cupsPrintFile2(http, target, fname, title, num_options, options); // Do it. "rCups" should be the filename/path
   //
@@ -514,6 +519,26 @@ static VALUE cups_get_options(VALUE self, VALUE printer)
 
 /*
 */
+
+// Update the connection handling for CUPS 2.x
+http_t *get_http_connection(const char *url, int port) {
+  #ifdef HAVE_CUPS_2_4
+    return httpConnect2(url, port, NULL, AF_UNSPEC, HTTP_ENCRYPTION_IF_REQUESTED, 1, 30000, NULL);
+  #else
+    return httpConnect(url, port);
+  #endif
+}
+
+// Update IPP attribute handling
+#ifdef HAVE_CUPS_2_4
+static const char *get_ipp_string(ipp_attribute_t *attr, int index) {
+  return ippGetString(attr, index, NULL);
+}
+#else
+static const char *get_ipp_string(ipp_attribute_t *attr, int index) {
+  return attr->values[index].string.text;
+}
+#endif
 
 void Init_cups() {
   rubyCups = rb_define_module("Cups");
