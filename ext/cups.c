@@ -3,7 +3,23 @@
 cups_dest_t *dests, *dest;
 VALUE rubyCups, printJobs;
 
-// Need to abstract this out of cups.c
+// Helper function implementations moved to top
+http_t *get_http_connection(const char *url, int port) {
+  #ifdef HAVE_CUPS_2_4
+    return httpConnect2(url, port, NULL, AF_UNSPEC, HTTP_ENCRYPTION_IF_REQUESTED, 1, 30000, NULL);
+  #else
+    return httpConnect(url, port);
+  #endif
+}
+
+const char *get_ipp_string(ipp_attribute_t *attr, int index) {
+  #ifdef HAVE_CUPS_2_4
+    return ippGetString(attr, index, NULL);
+  #else
+    return attr->values[index].string.text;
+  #endif
+}
+
 VALUE ipp_state_to_symbol(int state)
 {
   VALUE jstate;
@@ -519,26 +535,6 @@ static VALUE cups_get_options(VALUE self, VALUE printer)
 
 /*
 */
-
-// Update the connection handling for CUPS 2.x
-http_t *get_http_connection(const char *url, int port) {
-  #ifdef HAVE_CUPS_2_4
-    return httpConnect2(url, port, NULL, AF_UNSPEC, HTTP_ENCRYPTION_IF_REQUESTED, 1, 30000, NULL);
-  #else
-    return httpConnect(url, port);
-  #endif
-}
-
-// Update IPP attribute handling
-#ifdef HAVE_CUPS_2_4
-static const char *get_ipp_string(ipp_attribute_t *attr, int index) {
-  return ippGetString(attr, index, NULL);
-}
-#else
-static const char *get_ipp_string(ipp_attribute_t *attr, int index) {
-  return attr->values[index].string.text;
-}
-#endif
 
 void Init_cups() {
   rubyCups = rb_define_module("Cups");
